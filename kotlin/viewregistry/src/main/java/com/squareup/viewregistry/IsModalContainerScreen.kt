@@ -15,7 +15,7 @@
  */
 package com.squareup.viewregistry
 
-interface ModalContainerScreen<out B : Any, out M : Any> {
+interface IsModalContainerScreen<out B : Any, out M : Any> {
   val baseScreen: B
   val modals: List<M>
 }

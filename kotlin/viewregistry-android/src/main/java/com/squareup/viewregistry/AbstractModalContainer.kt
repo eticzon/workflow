@@ -14,7 +14,7 @@ import io.reactivex.subjects.BehaviorSubject
 import kotlin.reflect.jvm.jvmName
 
 /**
- * Base class for containers that show [ModalContainerScreen.modals] in [Dialog]s
+ * Base class for containers that show [IsModalContainerScreen.modals] in [Dialog]s
  */
 abstract class AbstractModalContainer<M : Any>
 @JvmOverloads constructor(
@@ -50,14 +50,14 @@ abstract class AbstractModalContainer<M : Any>
     }
   }
 
-  override fun onBackPressed(): Boolean {
+  final override fun onBackPressed(): Boolean {
     // This should only be hit if there are no dialogs showing, so we only
     // need to consider the body.
     return (base as? HandlesBack)?.onBackPressed() == true
   }
 
   fun takeScreens(
-    screens: Observable<out ModalContainerScreen<*, M>>,
+    screens: Observable<out IsModalContainerScreen<*, M>>,
     viewRegistry: ViewRegistry
   ) {
     takeScreensSubs.clear()
@@ -96,11 +96,11 @@ abstract class AbstractModalContainer<M : Any>
     )
   }
 
-  protected open fun DialogRef<M>.matches(modalScreen: M): Boolean = true
+  protected open fun DialogRef<M>.matches(modalScreen: M): Boolean = this.screen == modalScreen
 
   protected abstract fun showDialog(modalScreen: M): Dialog
 
-  private fun ModalContainerScreen<*, M>.showDialog(index: Int): Dialog = showDialog(modals[index])
+  private fun IsModalContainerScreen<*, M>.showDialog(index: Int): Dialog = showDialog(modals[index])
 
   private fun <T> Observable<T>.whileAttached(): Observable<T> =
     attached.switchMap { isAttached -> if (isAttached) this else Observable.never<T>() }
@@ -110,8 +110,8 @@ abstract class AbstractModalContainer<M : Any>
     val dialog: Dialog
   )
 
-  private fun <T : Any> ModalContainerScreen<T, *>.viewForBase(
-    containerScreens: Observable<out ModalContainerScreen<*, *>>,
+  private fun <T : Any> IsModalContainerScreen<T, *>.viewForBase(
+    containerScreens: Observable<out IsModalContainerScreen<*, *>>,
     viewRegistry: ViewRegistry,
     container: ViewGroup
   ): View {
@@ -120,8 +120,8 @@ abstract class AbstractModalContainer<M : Any>
     return binding.buildView(baseScreens, viewRegistry, container)
   }
 
-  private fun <T : Any> Observable<out ModalContainerScreen<*, *>>.mapToBaseMatching(
-    screen: ModalContainerScreen<T, *>
+  private fun <T : Any> Observable<out IsModalContainerScreen<*, *>>.mapToBaseMatching(
+    screen: IsModalContainerScreen<T, *>
   ): Observable<out T> {
     return map { it.baseScreen }.ofType(screen.baseScreen::class.java)
   }

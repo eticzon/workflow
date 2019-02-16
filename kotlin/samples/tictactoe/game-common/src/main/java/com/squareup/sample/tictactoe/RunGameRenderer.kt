@@ -18,12 +18,14 @@ package com.squareup.sample.tictactoe
 import com.squareup.sample.tictactoe.RunGameEvent.ConfirmQuit
 import com.squareup.sample.tictactoe.RunGameEvent.ContinuePlaying
 import com.squareup.sample.tictactoe.RunGameState.MaybeQuitting
+import com.squareup.sample.tictactoe.RunGameState.MaybeQuittingForSure
 import com.squareup.sample.tictactoe.RunGameState.Playing
 import com.squareup.viewregistry.AlertContainerScreen
 import com.squareup.viewregistry.AlertScreen
 import com.squareup.viewregistry.AlertScreen.Button.NEGATIVE
 import com.squareup.viewregistry.AlertScreen.Button.NEUTRAL
 import com.squareup.viewregistry.AlertScreen.Button.POSITIVE
+import com.squareup.viewregistry.AlertScreen.Event
 import com.squareup.viewregistry.AlertScreen.Event.ButtonClicked
 import com.squareup.viewregistry.AlertScreen.Event.Canceled
 import com.squareup.viewregistry.EventHandlingScreen.Companion.ignoreEvents
@@ -53,28 +55,43 @@ object RunGameRenderer :
 
       is MaybeQuitting -> AlertContainerScreen(
           GamePlayScreen(state.completedGame.lastTurn, ignoreEvents()),
-          AlertScreen(
-              workflow.adaptEvents<AlertScreen.Event, RunGameEvent> { alertEvent ->
-                when (alertEvent) {
-                  is ButtonClicked -> when (alertEvent.button) {
-                    POSITIVE -> ConfirmQuit
-                    NEGATIVE -> ContinuePlaying
-                    NEUTRAL -> throw IllegalArgumentException()
-                  }
-                  Canceled -> ContinuePlaying
-                }
-              }::sendEvent,
-              buttons = mapOf(
-                  POSITIVE to "I Quit",
-                  NEGATIVE to "No"
-              ),
-              message = "Do you really want to concede the game?"
-          )
+          maybeQuitScreen(workflow)
+      )
+
+      is MaybeQuittingForSure -> AlertContainerScreen(
+          GamePlayScreen(state.completedGame.lastTurn, ignoreEvents()),
+          maybeQuitScreen(workflow),
+          maybeQuitScreen(workflow, "Really?", "Yes God damn it!", "Sigh, no")
       )
 
       is RunGameState.GameOver -> AlertContainerScreen(
           GameOverScreen(state, workflow::sendEvent)
       )
     }
+  }
+
+  private fun maybeQuitScreen(
+    workflow: WorkflowInput<RunGameEvent>,
+    message: String = "Do you really want to concede the game?",
+    positive: String = "I Quit",
+    negative: String = "No"
+  ): AlertScreen {
+    return AlertScreen(
+        workflow.adaptEvents<Event, RunGameEvent> { alertEvent ->
+          when (alertEvent) {
+            is ButtonClicked -> when (alertEvent.button) {
+              POSITIVE -> ConfirmQuit
+              NEGATIVE -> ContinuePlaying
+              NEUTRAL -> throw IllegalArgumentException()
+            }
+            Canceled -> ContinuePlaying
+          }
+        }::sendEvent,
+        buttons = mapOf(
+            POSITIVE to positive,
+            NEGATIVE to negative
+        ),
+        message = message
+    )
   }
 }
