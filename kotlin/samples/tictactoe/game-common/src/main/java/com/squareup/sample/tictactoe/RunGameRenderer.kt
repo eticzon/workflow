@@ -19,14 +19,14 @@ import com.squareup.sample.tictactoe.RunGameEvent.ConfirmQuit
 import com.squareup.sample.tictactoe.RunGameEvent.ContinuePlaying
 import com.squareup.sample.tictactoe.RunGameState.MaybeQuitting
 import com.squareup.sample.tictactoe.RunGameState.Playing
-import com.squareup.viewregistry.Alert
-import com.squareup.viewregistry.Alert.Button.NEGATIVE
-import com.squareup.viewregistry.Alert.Button.NEUTRAL
-import com.squareup.viewregistry.Alert.Button.POSITIVE
-import com.squareup.viewregistry.Alert.Event.ButtonClicked
-import com.squareup.viewregistry.Alert.Event.Canceled
-import com.squareup.viewregistry.EventHandlingScreen.Companion.ignoreEvents
 import com.squareup.viewregistry.AlertContainerScreen
+import com.squareup.viewregistry.AlertScreen
+import com.squareup.viewregistry.AlertScreen.Button.NEGATIVE
+import com.squareup.viewregistry.AlertScreen.Button.NEUTRAL
+import com.squareup.viewregistry.AlertScreen.Button.POSITIVE
+import com.squareup.viewregistry.AlertScreen.Event.ButtonClicked
+import com.squareup.viewregistry.AlertScreen.Event.Canceled
+import com.squareup.viewregistry.EventHandlingScreen.Companion.ignoreEvents
 import com.squareup.workflow.Renderer
 import com.squareup.workflow.WorkflowInput
 import com.squareup.workflow.WorkflowPool
@@ -53,8 +53,8 @@ object RunGameRenderer :
 
       is MaybeQuitting -> AlertContainerScreen(
           GamePlayScreen(state.completedGame.lastTurn, ignoreEvents()),
-          Alert(
-              workflow.adaptEvents<Alert.Event, RunGameEvent> { alertEvent ->
+          AlertScreen(
+              workflow.adaptEvents<AlertScreen.Event, RunGameEvent> { alertEvent ->
                 when (alertEvent) {
                   is ButtonClicked -> when (alertEvent.button) {
                     POSITIVE -> ConfirmQuit
