@@ -28,6 +28,7 @@ import com.squareup.viewregistry.AlertScreen.Button.POSITIVE
 import com.squareup.viewregistry.AlertScreen.Event
 import com.squareup.viewregistry.AlertScreen.Event.ButtonClicked
 import com.squareup.viewregistry.AlertScreen.Event.Canceled
+import com.squareup.viewregistry.BackStackScreen
 import com.squareup.viewregistry.EventHandlingScreen.Companion.ignoreEvents
 import com.squareup.workflow.Renderer
 import com.squareup.workflow.WorkflowInput
@@ -36,13 +37,13 @@ import com.squareup.workflow.adaptEvents
 import com.squareup.workflow.render
 
 object RunGameRenderer :
-    Renderer<RunGameState, RunGameEvent, AlertContainerScreen<*>> {
+    Renderer<RunGameState, RunGameEvent, AlertContainerScreen<BackStackScreen<*>>> {
 
   override fun render(
     state: RunGameState,
     workflow: WorkflowInput<RunGameEvent>,
     workflows: WorkflowPool
-  ): AlertContainerScreen<*> {
+  ): AlertContainerScreen<BackStackScreen<*>> {
     return when (state) {
 
       is Playing -> {
@@ -51,21 +52,23 @@ object RunGameRenderer :
             .let { AlertContainerScreen(it) }
       }
 
-      is RunGameState.NewGame -> AlertContainerScreen(NewGameScreen(workflow::sendEvent))
+      is RunGameState.NewGame -> AlertContainerScreen(
+          BackStackScreen(NewGameScreen(workflow::sendEvent))
+      )
 
       is MaybeQuitting -> AlertContainerScreen(
-          GamePlayScreen(state.completedGame.lastTurn, ignoreEvents()),
+          BackStackScreen(GamePlayScreen(state.completedGame.lastTurn, ignoreEvents())),
           maybeQuitScreen(workflow)
       )
 
       is MaybeQuittingForSure -> AlertContainerScreen(
-          GamePlayScreen(state.completedGame.lastTurn, ignoreEvents()),
+          BackStackScreen(GamePlayScreen(state.completedGame.lastTurn, ignoreEvents())),
           maybeQuitScreen(workflow),
           maybeQuitScreen(workflow, "Really?", "Yes God damn it!", "Sigh, no")
       )
 
       is RunGameState.GameOver -> AlertContainerScreen(
-          GameOverScreen(state, workflow::sendEvent)
+          BackStackScreen(GameOverScreen(state, workflow::sendEvent))
       )
     }
   }
