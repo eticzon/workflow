@@ -1,5 +1,10 @@
 package com.squareup.viewregistry
 
+/**
+ * May show a stack of [AlertScreen] over a [baseScreen].
+ *
+ * @param B the type of [baseScreen]
+ */
 data class AlertContainerScreen<B : Any>(
   override val baseScreen: B,
   override val modals: List<AlertScreen> = emptyList()
@@ -15,5 +20,5 @@ data class AlertContainerScreen<B : Any>(
   ) : this(baseScreen, modals.toList())
 }
 
-fun <M : Any> BackStackScreen<M>.toAlertContainerScreen():
-    AlertContainerScreen<BackStackScreen<M>> = AlertContainerScreen(this)
+fun <B : Any> BackStackScreen<B>.toAlertContainerScreen():
+    AlertContainerScreen<BackStackScreen<B>> = AlertContainerScreen(this)

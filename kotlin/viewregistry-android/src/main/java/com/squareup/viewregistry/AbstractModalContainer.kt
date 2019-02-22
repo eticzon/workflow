@@ -83,10 +83,13 @@ abstract class AbstractModalContainer<M : Any>
         .subscribe { containerScreen ->
           val newDialogs = mutableListOf<DialogRef<M>>()
           for ((i, modal) in containerScreen.modals.withIndex()) {
-            newDialogs += if (dialogs.size < i && dialogs[i].matches(modal)) {
+            newDialogs += if (dialogs.size < i && dialogs[i].screen.matches(modal)) {
               dialogs[i]
             } else {
-              DialogRef<M>(modal, containerScreen.showDialog(i))
+              val modalsInThisLayer = screens.whileAttached()
+                  .filter { it.modals.size > i }
+                  .map { it.modals[i] }
+              DialogRef(modal, containerScreen.showDialog(i, modalsInThisLayer, viewRegistry))
             }
           }
 
@@ -96,11 +99,22 @@ abstract class AbstractModalContainer<M : Any>
     )
   }
 
-  protected open fun DialogRef<M>.matches(modalScreen: M): Boolean = this.screen == modalScreen
+  /**
+   * Returns true if the new screen can be shown by the dialog that was created for the receiver.
+   */
+  protected abstract fun M.matches(modalScreen: M): Boolean
 
-  protected abstract fun showDialog(modalScreen: M): Dialog
+  protected abstract fun showDialog(
+    modalScreen: M,
+    screens: Observable<out M>,
+    viewRegistry: ViewRegistry
+  ): Dialog
 
-  private fun IsModalContainerScreen<*, M>.showDialog(index: Int): Dialog = showDialog(modals[index])
+  private fun IsModalContainerScreen<*, M>.showDialog(
+    index: Int,
+    screens: Observable<out M>,
+    viewRegistry: ViewRegistry
+  ): Dialog = showDialog(modals[index], screens, viewRegistry)
 
   private fun <T> Observable<T>.whileAttached(): Observable<T> =
     attached.switchMap { isAttached -> if (isAttached) this else Observable.never<T>() }
@@ -122,7 +136,28 @@ abstract class AbstractModalContainer<M : Any>
 
   private fun <T : Any> Observable<out IsModalContainerScreen<*, *>>.mapToBaseMatching(
     screen: IsModalContainerScreen<T, *>
-  ): Observable<out T> {
-    return map { it.baseScreen }.ofType(screen.baseScreen::class.java)
+  ): Observable<out T> = map { it.baseScreen }.ofType(screen.baseScreen::class.java)
+
+  protected fun <M : Any> IsModalContainerScreen<*, M>.viewForModal(
+    containerScreens: Observable<out IsModalContainerScreen<*, *>>,
+    index: Int,
+    viewRegistry: ViewRegistry,
+    container: ViewGroup
+  ): View {
+    if (index < modals.size) {
+      throw IndexOutOfBoundsException(
+          "index $index into ${this}.modals must be less than ${modals.size}"
+      )
+    }
+    val modalScreens: Observable<out M> = containerScreens.mapToModalMatching(this, index)
+    val binding: ViewBinding<M> = viewRegistry.getBinding(baseScreen::class.jvmName)
+    return binding.buildView(modalScreens, viewRegistry, container)
   }
+
+  private fun <M : Any> Observable<out IsModalContainerScreen<*, *>>.mapToModalMatching(
+    screen: IsModalContainerScreen<*, M>,
+    index: Int
+  ): Observable<out M> = filter { index < it.modals.size }
+      .map { it.modals[index] }
+      .ofType(screen.modals[index]::class.java)
 }

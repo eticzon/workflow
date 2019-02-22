@@ -25,14 +25,31 @@ import com.squareup.viewregistry.AlertScreen.Button.NEUTRAL
 import com.squareup.viewregistry.AlertScreen.Button.POSITIVE
 import com.squareup.viewregistry.AlertScreen.Event.ButtonClicked
 import com.squareup.viewregistry.AlertScreen.Event.Canceled
+import io.reactivex.Observable
 
+/**
+ * Container view for [AlertContainerScreen].
+ */
 class AlertContainer
 @JvmOverloads constructor(
   context: Context,
   attributeSet: AttributeSet? = null
 ) : AbstractModalContainer<AlertScreen>(context, attributeSet) {
 
-  override fun showDialog(modalScreen: AlertScreen): AlertDialog {
+  /**
+   * Show a new dialog if content changes.
+   */
+  override fun AlertScreen.matches(modalScreen: AlertScreen): Boolean {
+    // Swizzle out the event handler before comparing, so that we're equal if
+    // everything we display is equal.
+    return this == modalScreen.copy(onEvent = onEvent)
+  }
+
+  override fun showDialog(
+    modalScreen: AlertScreen,
+    screens: Observable<out AlertScreen>,
+    viewRegistry: ViewRegistry
+  ): AlertDialog {
     val builder = AlertDialog.Builder(context)
 
     if (modalScreen.cancelable) {
@@ -66,12 +83,11 @@ class AlertContainer
   companion object : ViewBinding<AlertContainerScreen<*>>
   by BuilderBinding(
       type = AlertContainerScreen::class.java,
-      builder = { screens, builders, context, _ ->
-        AlertContainer(context)
-            .apply {
-              layoutParams = (ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
-              takeScreens(screens, builders)
-            }
+      builder = { screens, viewRegistry, context, _ ->
+        AlertContainer(context).apply {
+          layoutParams = (ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+          takeScreens(screens, viewRegistry)
+        }
       }
   )
 }
