@@ -11,13 +11,13 @@ data class AlertContainerScreen<B : Any>(
 ) : IsModalContainerScreen<B, AlertScreen> {
   constructor(
     baseScreen: B,
-    modal: AlertScreen
-  ) : this(baseScreen, listOf(modal))
+    alert: AlertScreen
+  ) : this(baseScreen, listOf(alert))
 
   constructor(
     baseScreen: B,
-    vararg modals: AlertScreen
-  ) : this(baseScreen, modals.toList())
+    vararg alerts: AlertScreen
+  ) : this(baseScreen, alerts.toList())
 }
 
 fun <B : Any> BackStackScreen<B>.toAlertContainerScreen():

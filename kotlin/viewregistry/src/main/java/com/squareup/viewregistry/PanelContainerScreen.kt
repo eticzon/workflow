@@ -6,13 +6,13 @@ data class PanelContainerScreen<B : Any>(
 ) : IsModalContainerScreen<B, BackStackScreen<*>> {
   constructor(
     baseScreen: B,
-      modal: BackStackScreen<*>
-  ) : this(baseScreen, listOf(modal))
+      panel: BackStackScreen<*>
+  ) : this(baseScreen, listOf(panel))
 
   constructor(
     baseScreen: B,
-      vararg modals: BackStackScreen<*>
-  ) : this(baseScreen, modals.toList())
+      vararg panels: BackStackScreen<*>
+  ) : this(baseScreen, panels.toList())
 }
 
 fun <B: Any> BackStackScreen<B>.toPanelContainerScreen():

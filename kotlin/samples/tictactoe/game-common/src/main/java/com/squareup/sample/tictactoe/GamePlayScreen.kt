@@ -18,6 +18,6 @@ package com.squareup.sample.tictactoe
 import com.squareup.viewregistry.EventHandlingScreen
 
 data class GamePlayScreen(
-  override val data: Turn,
-  override val onEvent: (TakeTurnsEvent) -> Unit
+  override val data: Turn = Turn(),
+  override val onEvent: (TakeTurnsEvent) -> Unit = { Unit }
 ) : EventHandlingScreen<Turn, TakeTurnsEvent>

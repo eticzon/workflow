@@ -23,6 +23,8 @@ import com.squareup.sample.tictactoe.android.TicTacToeViewBindings
 import com.squareup.viewregistry.AlertContainer
 import com.squareup.viewregistry.AlertContainerScreen
 import com.squareup.viewregistry.HandlesBack
+import com.squareup.viewregistry.PanelContainer
+import com.squareup.viewregistry.PanelContainerScreen
 import com.squareup.viewregistry.ViewBinding
 import com.squareup.viewregistry.ViewRegistry
 import com.squareup.viewregistry.backstack.BackStackContainer
@@ -104,7 +106,7 @@ class MainActivity : AppCompatActivity() {
 
   private fun buildViewRegistry(): ViewRegistry {
     return ViewRegistry(
-        AlertContainer, BackStackContainer
+        AlertContainer, PanelContainer, BackStackContainer
     ) + AuthViewBindings + TicTacToeViewBindings + PushPopEffect
   }
 
